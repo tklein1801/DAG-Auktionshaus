@@ -9,4 +9,4 @@
 Das Auktionhaus befindet sich derzeit in der Beta und wird auf Fehler geprüft. Sobald die Beta beendet ist wird der gesamte Source-Code des Auktionhauses hier vorzufinden sein.
 
 ### Documentation
-<p align="left">You can find all required informations <a href="https://github.com/tklein1801/ShoutBox/wiki">here.</a></p>
+<p align="left">You can find all required informations <a href="https://github.com/tklein1801/DAG-Auktionshaus/wiki">here.</a></p>
