@@ -217,10 +217,8 @@
           if(apiKey == "" || apiKey == " ") {
             // API-Key is not set
             $("#setKeyModal").modal("show");
-            $("#saveKeyBtn").on("click", () => {
-              var inputVal = $("#apiKeyInput").val();
-              ls.setItem("apiKey", inputVal);
-              location.reload();
+            document.getElementById("saveKeyBtn").addEventListener("click", function () {
+              auction.saveKey("apiKeyInput");
             });
           } else {
             var profileData = rlapi.getProfile(apiKey);
@@ -236,7 +234,7 @@
             $("#profileApiKey").val(apiKey);
 
             // Create new offer
-            $("#createOfferForm").submit((event) => {
+            document.getElementById("createOfferForm").addEventListener("click", function (event) {
               event.preventDefault();
               let error = false;
               const fData = new FormData();
@@ -335,11 +333,14 @@
                 }
               });
             }
-
-            $(".shop-item").on("click", function() {
-              var offerID = $(this).data("id");
-              $(location).attr("href", `https://dulliag.de/Auktionen/offer.php?id=${offerID}`);
-            });
+            
+            const shopItems = document.getElementsByClassName("shop-item");
+            for (let i = 0; i < shopItems.length; i++) {
+              shopItems[i].addEventListener("click", function (event) {
+                const offerId = $(this).data("id");
+                $(location).attr("href", `https://dulliag.de/Auktionen/offer.php?id=${offerId}`)
+              });
+            }
 
             $.ajax({
               url: "https://files.dulliag.de/web/php/auction/a.php",
@@ -372,10 +373,8 @@
         } else {
           $("#profileApiKey").val("Nicht gesetzt");
           $("#setKeyModal").modal("show");
-          $("#saveKeyBtn").on("click", () => {
-            var inputVal = $("#apiKeyInput").val();
-            ls.setItem("apiKey", inputVal);
-            location.reload();
+          document.getElementById("saveKeyBtn").addEventListener("click", function () {
+            auction.saveKey("apiKeyInput");
           });
         }
       } else {
@@ -383,139 +382,41 @@
         $('#profile').addClass('d-none');
         $('#profileContent').addClass('d-none');
       }
-
       // Toggle modals
-      $('#switchSignUp').on('click', () => {
-        $('#signInModal').modal('hide'); // Close sign in modal
-        $('#signUpModal').modal('show'); // Open sign up modal
+      document.getElementById("switchSignUp").addEventListener("click", function () {
+        $("#signInModal").modal("toggle");
+        $("#signUpModal").modal("toggle");
       });
-
       // Sign in
-      $('#signInForm').submit((event) => {
+      document.getElementById("signInForm").addEventListener("submit", function (event) {
         event.preventDefault();
-        var username = $('#signInUsername').val();
-        var password = $('#signInPassword').val();
-        // Check if user exists
-        var isRegistered = user.isRegistered(username);
-        if(isRegistered == true) {
-          var login = user.login(username, password);
-          // Check if login data is correct
-          if(login == true) {
-            // Create cookie
-            document.cookie = `username=${username}`;
-            toastr.success("Du wurdest angemeldet");
-            user.updateBar();
-            location.reload();
-            $("#signInModal").modal("hide");
-            // Check if API-Key is set
-            if(ls.hasOwnProperty("apiKey")) {
-              // API-Key is set
-              const apiKey = ls.getItem("apiKey");
-              if(apiKey == "" || apiKey == " ") {
-                // API-Key is not set
-                $("#setKeyModal").modal("show");
-                $("#saveKeyBtn").on("click", () => {
-                  var inputVal = $("#apiKeyInput").val();
-                  ls.setItem("apiKey", inputVal);
-                  location.reload();
-                });
-              } else {
-                var profileData = rlapi.getProfile(apiKey);
-                var cash = parseInt(profileData[3]);
-                cash = cash.toLocaleString(undefined);
-                var bankAcc = parseInt(profileData[4]);
-                bankAcc = bankAcc.toLocaleString(undefined);
-                $("#playerBankAcc").text(`${bankAcc} NHD`);
-                $("#playerCash").text(`${cash} NHD`);
-                // Set profile data
-                $("#profileUsername").html(`@${loginCookie} <a id="editProfile" class="text-success" href="#"><i class="fas fa-pencil-alt"></i></a>`);
-                $("#profileApiKey").val(apiKey);
-              }
-            } else {
-              // API-Key is not set
-              $("#setKeyModal").modal("show");
-              $("#saveKeyBtn").on("click", () => {
-                var inputVal = $("#apiKeyInput").val();
-                ls.setItem("apiKey", inputVal);
-                location.reload();
-              });
-            }
-          } else {
-            toastr.error("Deine Anmeldedaten sind falsch");
-          }
-        } else {
-          toastr.error("Der Benutzer existiert nicht");
-        }
+        event.preventDefault();
+        const username = document.getElementById("signInUsername").value;
+        const password = document.getElementById("signInPassword").value;
+        auction.doLogin(username, password);
       });
-
       // Sign up
-      $("#signUpForm").submit((event) => {
+      document.getElementById("signUpForm").addEventListener("submit", function (event) {
         event.preventDefault();
-        var username = $("#signUpUsername").val();
-        var password = $("#signUpPassword").val();
-        var email = $("#signUpEmail").val();
-        var isRegistered = user.isRegistered(username);
-        if(isRegistered == false) {
-          var registration = user.register(username, password, email);
-          if(registration == true) {
-            user.updateBar();
-            toastr.success("Du hast dich erfolgreich registriert");
-            toastr.success("Du wurdest angemeldet")
-            document.cookie = `username=${username}`;
-            $("#signUpModal").modal("hide");
-            if(ls.hasOwnProperty("apiKey")) {
-              // API-Key is set
-              const apiKey = ls.getItem("apiKey");
-              if(apiKey == " ") {
-                // API-Key is not set
-                $("#setKeyModal").modal("show");
-                $("#saveKeyBtn").on("click", () => {
-                  var inputVal = $("#apiKeyInput").val();
-                  ls.setItem("apiKey", inputVal);
-                  location.reload();
-                });
-              } else {
-                var profileData = rlapi.getProfile(apiKey);
-                var cash = parseInt(profileData[3]);
-                cash = cash.toLocaleString(undefined);
-                var bankAcc = parseInt(profileData[4]);
-                bankAcc = bankAcc.toLocaleString(undefined);
-                $("#playerBankAcc").text(`${bankAcc} NHD`);
-                $("#playerCash").text(`${cash} NHD`);
-              }
-            } else {
-              // API-Key is not set
-              $("#setKeyModal").modal("show");
-              $("#saveKeyBtn").on("click", () => {
-                var inputVal = $("#apiKeyInput").val();
-                ls.setItem("apiKey", inputVal);
-                location.reload();
-              });
-            }
-          } else {
-            toastr.error("Das Registrieren ist fehlgeschlagen");
-          }
-        } else {
-          toastr.error("Der Benutzer existiert bereits");
-        }
+        const username = document.getElementById("signUpUsername").value;
+        const password = document.getElementById("#signUpPassword").value;
+        const email = document.getElementById("#signUpEmail").value;
+        auction.doRegistration(username, password, email);
       });
-
       // Edit profile
-      $("#editProfile").on("click", () => {
+      document.getElementById("editProfile").addEventListener("click", function () {
         $("#btnOutput").removeClass("d-none");
         $("#profilePassword").attr("readonly", false);
         $("#profileEmail").attr("readonly", false);
         $("#profileApiKey").attr("readonly", false);
       });
-
-      $("#cancelUpdate").on("click", () => {
+      document.getElementById("cancelUpdate").addEventListener("click", function () {
         $("#btnOutput").addClass("d-none");
         $("#profilePassword").attr("readonly", true);
         $("#profileEmail").attr("readonly", true);
         $("#profileApiKey").attr("readonly", true);
       });
-
-      $("#saveUpdate").on("click", () => {
+      document.getElementById("saveUpdate").addEvenntListener("click", function () {
         var curKey = ls.getItem("apiKey");
         var newPw = $("#profilePassword").val();
         var newEmail = $("#profileEmail").val();

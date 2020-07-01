@@ -159,67 +159,36 @@
 
       // Register EvenListener
       // Redirect to offer
-      $(".shop-item").on("click", function() {
-        var offerID = $(this).data("id");
-        $(location).attr("href", `https://dulliag.de/Auktionen/offer.php?id=${offerID}`)
-      });
+      const shopItems = document.getElementsByClassName("shop-item");
+      for (let i = 0; i < shopItems.length; i++) {
+        shopItems[i].addEventListener("click", function (event) {
+          const offerId = $(this).data("id");
+          $(location).attr("href", `https://dulliag.de/Auktionen/offer.php?id=${offerId}`)
+        });
+      }
       // Toggle sign-in & sign-up modals
-      $("#switchSignUp").on("click", () => {
+      document.getElementById("switchSignUp").addEventListener("click", function () {
         $("#signInModal").modal("toggle");
         $("#signUpModal").modal("toggle");
       });
       // Set API-Key
-      $("#saveKeyBtn").on("click", () => {
-        var apiKey = $("#apiKeyInput").val();
-        ls.setItem("apiKey", apiKey);
-        location.reload();
+      document.getElementById("saveKeyBtn").addEventListener("click", function () {
+        auction.saveKey("apiKeyInput");
       });
       // Sign in
-      $("#signInForm").submit((event) => {
+      document.getElementById("signInForm").addEventListener("submit", function (event) {
         event.preventDefault();
-        const username = $("#signInUsername").val();
-        const password = $("#signInPassword").val();
-        // Check if username exists
-        const isRegistered = auction.isRegistered(username);
-        if (isRegistered == true) {
-          // User exists
-          // Check if login data is correct
-          const loginRes = auction.login(username, password);
-          if(loginRes == true) {
-            document.cookie = `username=${username}`; // Set cookie => login user in
-            toastr.success("Du wurdest angemeldet");
-            location.reload(); // Reload website
-          } else { // Password is incorrect
-            toastr.error("Das Passwort ist falsch");
-          }
-        } else { // User doesn't exist
-          toastr.error("Der Benutzer existiert nicht");
-        }
+        const username = document.getElementById("signInUsername").value;
+        const password = document.getElementById("signInPassword").value;
+        auction.doLogin(username, password);
       });
       // Sign up
-      $("#signUpForm").submit((event) => {
+      document.getElementById("signUpForm").addEventListener("submit", function (event) {
         event.preventDefault();
-        var username = $("#signUpUsername").val();
-        var password = $("#signUpPassword").val();
-        var email = $("#signUpEmail").val();
-        // Check if username is already taken
-        const isRegistered = auction.isRegistered(username);
-        if(isRegistered == false) {
-          // Username is free 2 take
-          const registration = auction.register(username, password, email);
-          if(registration == true) {
-            toastr.success("Du hast dich erfolgreich registriert");
-            document.cookie= `username=${username}`; // Set cookie => login user in
-            toastr.success("Du wurdest angemeldet");
-            auction.updateBar();
-            $("#signUpModal").modal("toggle");
-            $("#setKeyModal").modal("toggle");
-          } else { // Something went wront
-            toastr.error("Etwas ist schief gelaufen");
-          }
-        } else { // Username is already taken
-          toastr.error("Der Benutzername ist bereits vergeben");
-        }
+        const username = document.getElementById("signUpUsername").value;
+        const password = document.getElementById("#signUpPassword").value;
+        const email = document.getElementById("#signUpEmail").value;
+        auction.doRegistration(username, password, email);
       });
     </script>
     <script type="text/javascript">
