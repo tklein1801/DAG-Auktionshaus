@@ -240,6 +240,7 @@
       }, 5000); // Get every 5 seconds the current product price
       
 
+                  if (data.offer.expiresAt > new Date().getTime() / 1000 && data.offer.buy.bought != true) {
 
       // Check if user is logged in
       if(loginCookie != "" && loginCookie != " " && loginCookie != null) {
