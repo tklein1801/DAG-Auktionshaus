@@ -199,247 +199,397 @@
     <!-- This page script -->
     <script src="https://files.dulliag.de/web/js/auction.js"></script>
     <script type="text/javascript">
-      const user = new Auction;
+      const auction = new Auction;
       const ls = localStorage;
       const rlapi = new ReallifeAPI;
-      const loginCookie = getCookie("username"); // Returns cookie value
 
-      // Check if user is logged
-      if(loginCookie != "" && loginCookie != " " && loginCookie != null) {
-        const userData = user.getProfile(loginCookie);
-        // User is logged in
-        user.updateBar();
-        // Set profile data
-        $("#profileEmail").val(userData[3]);
-        // Check if API-Key is set
-        if(ls.hasOwnProperty("apiKey")) {
+      if (auction.isLoggedIn()) {
+        const loginData = JSON.parse(new Cookie().get("dag_auction"));
+        auction.updateDropdown(loginData.username);
+        if (ls.hasOwnProperty("apiKey")) {
           const apiKey = ls.getItem("apiKey");
-          if(apiKey == "" || apiKey == " ") {
-            // API-Key is not set
-            $("#setKeyModal").modal("show");
-            document.getElementById("saveKeyBtn").addEventListener("click", function () {
-              auction.saveKey("apiKeyInput");
+          if (apiKey != "") {
+            const a3 = rlapi.getProfile(apiKey); // TODO Should return an object instead of an normal array
+            document.querySelector("#playerBankAcc").innerText = `${parseInt(a3[4]).toLocaleString(undefined)} NHD`;
+            document.querySelector("#playerCash").innerText = `${parseInt(a3[3]).toLocaleString(undefined)} NHD`;
+          
+            document.querySelector("#createOfferForm").addEventListener("submit", function (e) {
+              e.preventDefault();
+              const thumbnail = this.querySelector("#thumbnail").files[0];
+              const images = this.querySelector("#images").files;
+              const time = this.querySelector("#expire-time").value;
+              const date = this.querySelector("#expire-date").value;
+              const expiresAt = `${date} ${time}`;
+              const desc = this.querySelector("#description").value;        
+              const price = parseInt(this.querySelector("#price").value);
+              const FormData = {
+                owner: {
+                  userId: loginData.userId,
+                  username: loginData.username,
+                  steamId: a3[15],
+                },
+                type: this.querySelector("#type").value,
+                thumbnail: thumbnail != undefined ? thumbnail : null,
+                images: images.length > 0 ? images : null,
+                price: price != NaN ? price : 0,
+                title: this.querySelector("#title").value,
+                description: desc != "" ? desc : "<i>Keine Beschreibung</i>",
+                expiresAt: new Date(expiresAt).getTime() / 1000,
+              };
+
+              // Do form validation
+              if (FormData.thumbnail != null) {
+                if (FormData.price != NaN) {
+                  if (FormData.title != "") {
+                    auction.createOffer(FormData)
+                      .then((res) => {
+                        //const offerId = res;
+                        //console.log("[Auction]", offerId);
+                        // TODO Display offer at #offer-output & remove "no offers found"-message if it's displayed
+                        $("#createOfferModal").modal("hide");
+                        toastr.success("Das Angebot wurde erstellt");
+                      })
+                      .catch((error) => {
+                        console.error("[Auction]", error);
+                      });
+                  } else {
+                    toastr.error("Bitte gib einen gültigen Titel an");
+                  }
+                } else {
+                  toastr.error("Bitte gib einen gültigen Preis ein");
+                }
+              } else {
+                toastr.error("Das Vorschaubild fehlt");
+              }
             });
           } else {
-            var profileData = rlapi.getProfile(apiKey);
-            var steamID = profileData[15];
-            var cash = parseInt(profileData[3]);
-            cash = cash.toLocaleString(undefined);
-            var bankAcc = parseInt(profileData[4]);
-            bankAcc = bankAcc.toLocaleString(undefined);
-            $("#playerBankAcc").text(`${bankAcc} NHD`);
-            $("#playerCash").text(`${cash} NHD`);
-            // Set profile data
-            $("#profileUsername").html(`@${loginCookie} <a id="editProfile" class="text-success" href="#"><i class="fas fa-pencil-alt"></i></a>`);
-            $("#profileApiKey").val(apiKey);
-
-            // Create new offer
-            document.getElementById("createOfferForm").addEventListener("click", function (event) {
-              event.preventDefault();
-              let error = false;
-              const fData = new FormData();
-              var offerType = $("#createOfferType").val();
-              var prodPrice = $("#createOfferPrice").val();
-              var prodName = $("#createOfferTitle").val();
-              var prodDesc = $("#createOfferDesc").val();
-              var prodDate = $("#createOfferDate").val();
-              var prodTime = $("#createOfferTime").val();
-              var endTime = Date.parse(`${prodDate} ${prodTime}`);
-              endTime = endTime / 1000; // Milliseconds => Seconds
-              let hasThumbnail = false;
-              var thumbnail = $("#createOfferThumbnail")[0]; // Get file
-              let hasProdImages = false;
-              var productImages = $("#createOfferImages")[0]; // Get files
-
-              // Add input value to form-data
-              fData.append("steam64Id", steamID);
-              fData.append("displayname", loginCookie);
-              fData.append("offerType", offerType);
-              fData.append("offerPrice", prodPrice);
-              fData.append("offerName", prodName);
-              fData.append("offerDesc", prodDesc);
-              fData.append("offerExpires", endTime);
-              if(thumbnail.files.length > 0) { // min. 1 image selected
-                hasThumbnail = true;
-                fData.append("hasThumbnail", hasThumbnail);
-                fData.append("thumbnail", thumbnail.files[0]);
-              } else { // no image selected
-                error = true;
-                fData.append("hasThumbnail", hasThumbnail);
-                toastr.error("Du brauchst ein Vorschaubild");
-              }
-              if(productImages.files.length > 0) { // min. 1 image selected
-                hasProdImages = true;
-                fData.append("hasProductImages", hasProdImages);
-                for (const img of productImages.files) {
-                  fData.append("productImages[]", img);
-                }
-              } else { // no image selected
-                fData.append("hasProductImages", hasProdImages);
-              }
-
-              // Create offer
-              if(error != true) {
-                $.ajax({
-                  url: "https://api.dulliag.de/auction/v2/createOffer.php",
-                  async: false,
-                  processData: false,
-                  contentType: false,
-                  data: fData,
-                  method: "post",
-                  success: (response) => {
-                    console.log(response);
-                    if(response  == "1") {
-                      $("#offerOutput .shop-item").remove();
-                      proOffers(steamID);
-                      $("#createOfferModal").modal("hide");
-                      toastr.success("Dein Angebot wurde erstellt");
-                    } else {
-                      toastr.error("Etwas ist schief gelaufen");
-                    }
-                  }, error: (response) => {
-                    console.log(response);
-                  }
-                });
-              }
-            });
-
-            // Get profile offers
-            $.ajax({
-              url: "https://api.dulliag.de/auction/v2/getProfileOffers.php",
-              async: false,
-              data: {
-                steam64Id: steamID
-              },
-              method: 'get',
-              success: (response) => {
-                $("#offerOutput").append(response);
-              }, error: (response) => {
-                console.log(response);
-              }
-            });
-            function proOffers(steamID) {
-              $.ajax({
-                url: "https://api.dulliag.de/auction/v2/getProfileOffers.php",
-                async: false,
-                data: {
-                  steam64Id: steamID
-                },
-                method: 'get',
-                success: (response) => {
-                  $("#offerOutput").append(response);
-                }, error: (response) => {
-                  console.log(response);
-                }
-              });
-            }
-            
-            const shopItems = document.getElementsByClassName("shop-item");
-            for (let i = 0; i < shopItems.length; i++) {
-              shopItems[i].addEventListener("click", function (event) {
-                const offerId = $(this).data("id");
-                $(location).attr("href", `https://dulliag.de/Auktionen/offer.php?id=${offerId}`)
-              });
-            }
-
-            $.ajax({
-              url: "https://files.dulliag.de/web/php/auction/a.php",
-              async: false,
-              data: {
-                steamID: steamID
-              },
-              method: 'get',
-              success: (response) => {
-                $("#bidOutput").append(response);
-              }, error: (response) => {
-                console.log(response);
-              }
-            });
-
-            $.ajax({
-              url: "https://files.dulliag.de/web/php/auction/b.php",
-              async: false,
-              data: {
-                steamID: steamID
-              },
-              method: 'get',
-              success: (response) => {
-                $("#myOfferOutput").append(response);
-              }, error: (response) => {
-                console.log(response);
-              }
+            document.querySelectorAll("#auctionBar .row p").forEach((element) => {
+              element.classList.add("d-none");
             });
           }
         } else {
-          $("#profileApiKey").val("Nicht gesetzt");
-          $("#setKeyModal").modal("show");
-          document.getElementById("saveKeyBtn").addEventListener("click", function () {
-            auction.saveKey("apiKeyInput");
+          document.querySelectorAll("#auctionBar .row p").forEach((element) => {
+            element.classList.add("d-none");
           });
         }
+
+        // Edit profile
+        auction.getUser(loginData.userId)
+          .then((value) => {
+            const profile = document.querySelector("#profile");
+            profile.querySelector("#avatar").setAttribute("src", "https://files.dulliag.de/web/images/logo.jpg");
+            profile.querySelector("#username").innerHTML = `@${value.username} <a id="edit" class="text-success" href="#"><i class="fas fa-pencil-alt"></i></a>`;
+            profile.querySelector("#email").value = value.email;
+            if (ls.hasOwnProperty("apiKey")) {
+              const apiKey = ls.getItem("apiKey");
+              if (apiKey != "" || apiKey != null) {
+                profile.querySelector("#apiKey").value = apiKey;
+              }
+            }
+
+            profile.querySelector("#edit").addEventListener("click", () => {
+              profile.querySelector("#options").classList.remove("d-none");
+              profile.querySelector("#password").readOnly = false;
+              profile.querySelector("#email").readOnly = false;
+              profile.querySelector("#apiKey").readOnly = false;
+            });
+
+            profile.querySelector("#cancel").addEventListener("click", () => {
+              profile.querySelector("#options").classList.add("d-none");
+              profile.querySelector("#password").readOnly = true;
+              profile.querySelector("#email").readOnly = true;
+              profile.querySelector("#apiKey").readOnly = true;
+            });
+
+            profile.querySelector("#save").addEventListener("click", () => {
+              const apiKey = ls.getItem("apiKey");
+              const newProfileData = {
+                apiKey: profile.querySelector("#apiKey").value,
+                email: profile.querySelector("#email").value,
+                password: profile.querySelector("#password").value,
+              };
+
+              // Update API-Key
+              if (apiKey != newProfileData.apiKey) {
+                ls.removeItem("apiKey");
+                ls.setItem("apiKey", newProfileData.apiKey);
+                profile.querySelector("#apiKey").value = newProfileData.apiKey;
+              }
+
+              // Save changes
+              auction
+                .updateUser(loginData.userId, newProfileData.password, newProfileData.email)
+                .catch((error) => {
+                  console.error(error);
+                  toastr.error("Die Änderungen konnten nicht gespeichert werden");
+                });
+
+              // Update website
+              toastr.success("Die Änderungen wurden gespeichert");
+              profile.querySelector("#email").value = newProfileData.email;
+              profile.querySelector("#options").classList.add("d-none");
+              profile.querySelector("#password").readOnly = true;
+              profile.querySelector("#email").readOnly = true;
+              profile.querySelector("#apiKey").readOnly = true;
+            });
+          });
+
+        // Get active offers
+        auction
+          .getOffers()
+          .then((data) => {
+            var offerCount = 0;
+            for (const key in data) {
+              // Check if the offer is active and owned by the user
+              const offer = data[key];
+
+              /**
+               * When we have an auction we wanna check if it's expired an someone did bid on that product
+               * If this turns out to be true were gonna update the offer-bought-status
+               */
+              if (offer.offer.type == 2 && offer.offer.expired < new Date().getTime() / 1000 && offer.offer.bids != "null") {
+                console.log("[Auction] Offer: ", key, " got bought");
+                var temp = [], winner;
+                const bids = offer.offer.bids;
+                for (const key in bids) {
+                  temp.push(bids[key]);
+                }
+                winner = temp.pop();
+                auction
+                  .buy(key, offer.owner.userId, winner.userId, winner.steam64Id)
+                  .catch((error) => {
+                    console.error(error);
+                  });
+              }
+
+              if (offer.offer.expiresAt > new Date().getTime() / 1000 && offer.owner.userId == loginData.userId && offer.offer.buy.bought != true) {
+                offerCount++;
+                var thumbnail, type, title, description, price;
+                
+                thumbnail = offer.offer.images.thumbnail;
+
+                type = offer.offer.type == 1
+                  ? `<span class="badge badge-success p-2">Sofortkauf</span>`
+                  : `<span class="badge badge-success p-2">Auktion</span>`;
+                
+                title = offer.offer.title;
+                
+                description = offer.offer.description;
+
+                if (offer.offer.type == 1 || (offer.offer.type == 2 && offer.offer.bids == "null")) {
+                  price = `${offer.offer.price.toLocaleString(undefined)} NHD`;
+                } else {
+                  var temp = [];
+                  const bids = offer.offer.bids;
+                  for (const key in bids) {
+                    temp.push(bids[key]);
+                 }
+                  price = temp.pop();
+                  price = `${price.amount.toLocaleString(undefined)} NHD`;
+                }
+
+                document.querySelector("#offerOutput").innerHTML += `<div class="col-md-4 px-0 px-md-3 mb-4"><div class="card shop-item border-0 bg-light" data-id="${key}"><div class="card-header p-0 position-relative border-0"><img class="card-img-top rounded" src="${thumbnail}" alt="Produktbild"><span class="badge badge-success position-absolute" style="top: 1rem; left: 1rem">${type}</span></div><div class="card-body"><h4 class="title p-0">${title}</h4><p class="text text-truncate p-0">${description}</p><p class="text font-weight-bold">Preis: <a href="https://dulliag.de/Auktionen/offer.php?offer=${key}" class="text-link">${price}</a></p></div></div></div>`;
+              }
+            }
+            if (offerCount == 0) {
+              document.querySelector("#offerOutput").innerHTML += `<div id="no-offers-found" class="w-100"><div class="bg-light rounded"><h4 class="title text-center font-weight-bold py-3">Keine Angebote gefunden</h4></div></div>`;
+            }
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+
+        // Get sales-history
+        auction
+          .getOffers()
+          .then((data) => {
+            var offerCount = 0;
+            for (const key in data) {
+              // Check if the offer is active and owned by the user
+              const offer = data[key];
+              if (offer.owner.userId == loginData.userId) {
+                offerCount++;
+                var status, type, title, price, bid, buyer;
+
+                if (offer.offer.buy.bought != true) {
+                  if (offer.offer.expiresAt > new Date().getTime() / 1000) {
+                    status = `<span class="badge badge-warning p-2">Aktiv</span>`;
+                  } else {
+                    status = `<span class="badge badge-danger p-2">Beendet</span>`;
+                  }
+                } else {
+                  status = `<span class="badge badge-success p-2">Verkauft</span>`;
+                }
+
+                type = offer.offer.type == 1
+                  ? `<span class="badge badge-success p-2">Sofortkauf</span>`
+                  : `<span class="badge badge-success p-2">Auktion</span>`;
+
+                title = `<a class="text-link" href="https://dulliag.de/Auktionen/offer.php?offer=${key}">${offer.offer.title}</a>`;
+
+                if (offer.offer.type == 1 || (offer.offer.type == 2 && offer.offer.bids == "null")) {
+                  price = `${offer.offer.price.toLocaleString(undefined)} NHD`;
+                  bid = price;
+                } else {
+                  var temp = [];
+                  const bids = offer.offer.bids;
+                  for (const key in bids) {
+                    temp.push(bids[key]);
+                  }
+                  temp = temp.pop();
+                  price = `${temp.amount.toLocaleString(undefined)} NHD`;
+                  bid = `<p class="text" data-toggle="tooltip" data-placement="top" title="PlayerID: ${temp.steam64Id}">${temp.amount.toLocaleString(undefined)} NHD</p>`;
+                }
+
+                buyer = offer.offer.buy.bought == true
+                  ? `<p class="text" data-toggle="tooltip" title="PlayerID">${offer.offer.buy.buyerSteam64Id}</p>`
+                  : `---`;
+
+                document.querySelector("#sales").innerHTML += `<tr class="text-center"><td>${status}</td><td>${type}</td><td>${title}</td><td>${price}</td><td>${bid}</td><td>${buyer}</td></tr>`;
+                $('[data-toggle="tooltip"]').tooltip();
+              }
+            }
+
+            if (offerCount == 0) {
+              document.querySelector("#sales").innerHTML = `<tr class="text-center font-weight-bold"><td colspan="6">Keine Angebote gefunden</td></tr>`;
+            }
+          })
+          .catch((error) => {
+            console.error(error);
+            document.querySelector("#sales").innerHTML = `<tr class="text-center font-weight-bold"><td colspan="6">Die Angebote konnten nicht abgerufen werden</td></tr>`;
+          });
+
+
+        // Get buy-history
+        auction
+          .getOffers()
+          .then((data) => {
+            var offerCount = 0;
+            var status, type, title, price, myBid;
+            for (const key in data) {
+              const offer = data[key];
+              //console.log("[Auction] ", offer);
+
+              type = offer.offer.type == 1 
+                  ? `<span class="badge badge-success p-2">Sofortkauf</span>`
+                  : `<span class="badge badge-success p-2">Auktion</span>`;
+
+              title = `<a href="https://dulliag.de/Auktionen/offer.php?offer=${key}" class="text-link">${offer.offer.title}</a>`;
+
+              const bids = offer.offer.bids;
+              var allBids = [], userBids = [];
+              if (offer.offer.type == 2 && bids != null) {
+                for (const key in bids) {
+                  const bid = bids[key];
+                  allBids.push(bid);
+                  if (bid.userId == loginData.userId) {
+                    userBids.push(bid);
+                  }
+                }
+              }
+              if (offer.offer.buy.bought == true && offer.offer.buy.buyerId == loginData.userId) {
+                offerCount++;
+                status = `<span class="badge badge-success p-2">Gekauft</span>`;
+                price = `${offer.offer.price.toLocaleString(undefined)} NHD`;
+                myBid = price;
+              } else if (offer.offer.type == 2 && userBids.length > 0) {
+                offerCount++;
+                if (offer.offer.expiresAt > new Date().getTime() / 1000) {
+                  allBids = allBids.pop();
+                  userBids = userBids.pop();
+                  if (allBids.userId == loginData.userId) {
+                    status = `<span class="badge badge-warning p-2">Höhstbietender</span>`;
+                    price = `${allBids.amount.toLocaleString(undefined)} NHD`;
+                    myBid = price;
+                  } else {
+                    status = `<span class="badge badge-danger p-2">Überboten</span>`;
+                    price = `${allBids.amount.toLocaleString(undefined)} NHD`;
+                    myBid = `${userBids.amount.toLocaleString(undefined)} NHD`;
+                  }
+                } else {
+                  var winner = allBids.pop();
+                  if (winner.userId == loginData.userId) {
+                    status = `<span class="badge badge-success p-2">Gekauft</span>`;
+                    price = `${winner.amount.toLocaleString(undefined)} NHD`;
+                    myBid = price;
+                  } else {
+                    // In this case went wrong :|
+                    status = `<span class="badge badge-danger p-2">ERROR</span>`;
+                    price = `${winner.amount.toLocaleString(undefined)} NHD`;
+                    userBids = userBids.pop();
+                    myBid = `${userBids.amount.toLocaleString(undefined)} NHD`;
+                  }
+                }
+              }
+
+              document.querySelector("#purchases").innerHTML += `<tr class="text-center"><td>${status}</td><td>${type}</td><td>${title}</td><td>${price}</td><td>${myBid}</td></tr>`;
+            }
+
+            if (offerCount == 0) {
+              document.querySelector("#purchases").innerHTML = `<tr class="text-center"><td colspan="5" class="font-weight-bold">Keine Angebote gefunden</td></tr>`;
+            }
+          })
+          .catch((error) => {
+            console.error(error);
+            document.querySelector("#purchases").innerHTML = `<tr class="text-center font-weight-bold"><td colspan="5">Die Angebote konnten nicht abgerufen werden</td></tr>`;
+          });
       } else {
-        $('#calloutLogin').removeClass('d-none');
-        $('#profile').addClass('d-none');
-        $('#profileContent').addClass('d-none');
+        document.querySelectorAll("#auctionBar .row p").forEach((element) => {
+          element.classList.add("d-none");
+        });
+
+        document.querySelector("#profile").classList.add("d-none");
+        document.querySelector("#profileContent").classList.add("d-none");
+        document.querySelector("#calloutLogin").classList.remove("d-none");
       }
-      // Toggle modals
+      // Toggle sign-in & sign-up modals
       document.getElementById("switchSignUp").addEventListener("click", function () {
         $("#signInModal").modal("toggle");
         $("#signUpModal").modal("toggle");
       });
+      // Set API-Key
+      document.getElementById("saveKeyBtn").addEventListener("click", function () {
+        ls.setItem("apiKey", document.querySelector("#apiKeyInput").value);
+        location.reload();
+      });
       // Sign in
       document.getElementById("signInForm").addEventListener("submit", function (event) {
         event.preventDefault();
-        event.preventDefault();
         const username = document.getElementById("signInUsername").value;
         const password = document.getElementById("signInPassword").value;
-        auction.doLogin(username, password);
+        auction.doLogin(username, password)
+          .then((response) => {
+            if(response) {
+              toastr.success("Du hast dich angemeldet");
+              // TODO Update page-content
+              setTimeout(() => {
+                location.reload();
+              }, 1000);
+            } else {
+              toastr.error("Der Benutzername oder das Passwort sind falsch");
+            }
+          })
+          .catch((error) => {
+            alert(error);
+          });
       });
       // Sign up
       document.getElementById("signUpForm").addEventListener("submit", function (event) {
         event.preventDefault();
         const username = document.getElementById("signUpUsername").value;
-        const password = document.getElementById("#signUpPassword").value;
-        const email = document.getElementById("#signUpEmail").value;
-        auction.doRegistration(username, password, email);
-      });
-      // Edit profile
-      document.getElementById("editProfile").addEventListener("click", function () {
-        $("#btnOutput").removeClass("d-none");
-        $("#profilePassword").attr("readonly", false);
-        $("#profileEmail").attr("readonly", false);
-        $("#profileApiKey").attr("readonly", false);
-      });
-      document.getElementById("cancelUpdate").addEventListener("click", function () {
-        $("#btnOutput").addClass("d-none");
-        $("#profilePassword").attr("readonly", true);
-        $("#profileEmail").attr("readonly", true);
-        $("#profileApiKey").attr("readonly", true);
-      });
-      document.getElementById("saveUpdate").addEvenntListener("click", function () {
-        var curKey = ls.getItem("apiKey");
-        var newPw = $("#profilePassword").val();
-        var newEmail = $("#profileEmail").val();
-        var newKey = $("#profileApiKey").val();
-        if (curKey != newKey) {
-          ls.removeItem("apiKey");
-          ls.setItem("apiKey", newKey);
-        }
-        var update = user.updateProfile(loginCookie, newPw, newEmail);
-        if(update == true) {
-          toastr.success("Dein Profil wurde gespeichert");
-          // Updaet input value
-          $("#profilePassword").val(newPw);
-          $("#profileEmail").val(newEmail);
-          $("#apiKeyInput").val(newKey);
-          // Remove buttons & readonly => true
-          $("#btnOutput").addClass("d-none");
-          $("#profilePassword").attr("readonly", true);
-          $("#profileEmail").attr("readonly", true);
-          $("#profileApiKey").attr("readonly", true);
-        } else {
-          toastr.error("Etwas ist schiefgelaufen");
-        }
+        const password = document.getElementById("signUpPassword").value;
+        const email = document.getElementById("signUpEmail").value;
+        auction.doRegistration(username, password, email)
+          .then((value) => {
+            toastr.success("Du hast dich erfolgreich registriert");
+            // TODO Update page-content
+            setTimeout(() => {
+              location.reload();
+            }, 1000);
+          })
+          .catch((error) => {
+            alert(error);
+          });
       });
     </script>
   </body>
