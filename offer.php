@@ -3,7 +3,7 @@
 <html>
   <head>
     <?php require_once $comp_header; ?>
-    <link rel="stylesheet" href="<?php echo $url_css.'auction.css'; ?>">
+    <link rel="stylesheet" href="<?php echo $url_css.'auction.css'; ?>" />
   </head>
   <body>
     <?php
@@ -38,62 +38,77 @@
             </a>
           </li>
         </ul>
-      </div><!-- ./breadcrumb-container -->
+      </div>
+      <!-- ./breadcrumb-container -->
 
       <div class="section">
         <!--
           Offers
         -->
         <div class="container px-0">
-          <div class="row">
-            <div class="col-md-8">
+          <div id="page-content" class="row">
+            <div id="offer-container" class="col-md-8">
               <div class="w-100 mb-3">
-                <!-- Get src of thumbnail from system.js -->
-                <img id="thumbnailPlaceholder" class="w-100 rounded" alt="Produktbild">
-              </div><!-- ./thumbnail -->
+                <img
+                  id="thumbnailPlaceholder"
+                  class="w-100 rounded"
+                  alt="Produktbild"
+                />
+              </div>
+              <!-- ./thumbnail -->
 
               <div id="productImages" class="product-images w-100 mb-3">
                 <!--
                   Get product images via system.js
                 -->
-              </div><!-- ./product-images -->
-            </div><!-- ./column -->
+              </div>
+              <!-- ./product-images -->
+            </div>
+            <!-- ./column -->
 
-            <div class="col-md-4">
+            <div id="seller-container" class="col-md-4">
               <div class="rounded bg-light mb-3 p-3">
                 <div class="header">
                   <div class="row">
                     <p id="sellerInformation" class="text">Lädt...</p>
-                    <button class="btn btn-sm btn-success ml-auto" data-toggle="modal" data-target="#contactSellerModal">Kontaktieren</button>
+                    <button
+                      class="btn btn-sm btn-success ml-auto"
+                      data-toggle="modal"
+                      data-target="#contactSellerModal"
+                      disabled
+                    >
+                      <s>Kontaktieren</s>
+                    </button>
                   </div>
-                </div><!-- ./header -->
+                </div>
               </div>
 
               <div class="rounded bg-light p-3">
                 <h4 id="offerTitle" class="title">Lädt...</h4>
-
                 <h6 id="timeLeft" class="title py-0">Lädt...</h6>
                 <h5 id="curBid" class="title py-0">Lädt...</h5>
                 <div id="orderOutput" class="row">
                   <!--
                     Get content via js
                   -->
-                </div><!-- ./row -->
+                </div>
+                <!-- ./row -->
 
-                <strong>Beschreibung</strong>
-                <p id="offerDesc" class="text">
-                  <!--
-                    Get description from js
-                  -->
-                </p>
-              </div><!-- ./bg-light -->
-            </div><!-- ./column -->
+                <p class="text font-weight-bold">Beschreibung</p>
+                <p id="offerDesc" class="text"></p>
+              </div>
+              <!-- ./bg-light -->
+            </div>
+            <!-- ./column -->
           </div>
-        </div><!-- ./container -->
-      </div><!-- ./support -->
+        </div>
+        <!-- ./container -->
+      </div>
+      <!-- ./support -->
 
-      <?php require_once $comp_footer;?>
-    </div><!-- ./page-container -->
+      <?php require_once $comp_footer; ?>
+    </div>
+    <!-- ./page-container -->
 
     <?php
       require_once '/var/www/vhosts/dulliag.de/files.dulliag.de/web/php/auction/modal/contactSeller.php';
@@ -104,8 +119,9 @@
 
     <?php require_once $comp_script; ?>
     <script>
-      activeMenuItem('auctionLink');
-    </script><!-- ./navbarJS -->
+      activeMenuItem("auctionLink");
+    </script>
+    <!-- ./navbarJS -->
 
     <!-- This page script -->
     <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-app.js"></script>

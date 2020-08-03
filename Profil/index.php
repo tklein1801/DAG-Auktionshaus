@@ -57,42 +57,42 @@
       </div><!-- ./breadcrumb-container -->
 
       <div class="section">
-
-
         <div class="container px-0">
           <div class="row">
-            <div id="calloutLogin" class="callout callout-success mx-auto d-none">
-              <h5>Achtung</h5>
-              <p>Bitte melde dich <a class="text-link" href="#" data-toggle="modal" data-target="#signInModal">hier</a> an um dein Profil einsehen zu können.</p>
-            </div><!-- ./callout -->
+            <div id="calloutLogin" class="col-12 col-md-4 mx-auto d-none">
+              <div class="callout callout-success">
+                <h5>Achtung</h5>
+                <p>Bitte melde dich <a class="text-link" href="#" data-toggle="modal" data-target="#signInModal">hier</a> an um dein Profil einsehen zu können.</p>
+              </div>
+            </div>
 
             <div id="profile" class="col-md-4 col-xl-3 mb-3">
               <div class="bg-light w-100 p-4 rounded">
-                <img id="profileImage" class="w-50 mx-auto mb-3 rounded-circle" src="<?php echo $dagLogo; ?>" alt="Profilbild" style="margin-left: 25%!important;">
+                <img id="avatar" class="w-50 mx-auto mb-3 rounded-circle" src="<?php echo $dagLogo; ?>" alt="Profilbild" style="margin-left: 25%!important;">
 
-                <p id="profileUsername" class="text font-weight-bold text-center mb-2">
+                <p id="username" class="text font-weight-bold text-center mb-2">
                   @Benutzername
                 </p>
 
-                <div id="btnOutput" class="btn-group mb-3 w-100 d-none">
-                  <button type="button" id="cancelUpdate" class="btn btn-sm btn-outline-secondary w-50">Abbrechen</button>
-                  <button type="button" id="saveUpdate" class="btn btn-sm btn-success w-50">Speichern</button>
+                <div id="options" class="btn-group mb-3 w-100 d-none">
+                  <button type="button" id="cancel" class="btn btn-sm btn-outline-secondary w-50">Abbrechen</button>
+                  <button type="button" id="save" class="btn btn-sm btn-success w-50">Speichern</button>
                 </div><!-- ./btn-group -->
 
                 <div class="row">
                   <div class="w-100 form-group row">
                     <label class="col-form-label p-0">Passwort</label>
-                    <input type="text" name="profilePassword" id="profilePassword" class="form-control form-control-sm p-0" placeholder="Passwort unsichtbar" readonly>
+                    <input type="text" name="password" id="password" class="form-control form-control-sm p-0" placeholder="Passwort unsichtbar" readonly>
                   </div><!-- ./form-group -->
 
                   <div class="w-100 form-group row">
                     <label class="col-form-label p-0">E-Mail</label>
-                    <input type="email" name="profileEmail" id="profileEmail" class="form-control form-control-sm p-0" value="Lädt..." readonly>
+                    <input type="email" name="email" id="email" class="form-control form-control-sm p-0" value="Lädt..." readonly>
                   </div><!-- ./form-group -->
 
                   <div class="w-100 form-group row">
                     <label class="col-form-label p-0">API-Key</label>
-                    <input type="text" name="profileApiKey" id="profileApiKey" class="form-control form-control-sm p-0" value="Lädt..." readonly>
+                    <input type="text" name="apiKey" id="apiKey" class="form-control form-control-sm p-0" value="Lädt..." readonly>
                   </div><!-- ./form-group -->
                 </div><!-- ./row -->
               </div>
@@ -103,13 +103,13 @@
                 <div class="header mb-3 bg-light rounded">
                   <nav class="nav nav-pills nav-justified">
                     <a href="#tab-offers" id="nav-offers" class="nav-item nav-link active" data-toggle="tab">
-                      Auktionen
-                    </a>
-                    <a href="#tab-bids" id="nav-bids" class="nav-item nav-link" data-toggle="tab">
                       Angebote
                     </a>
+                    <a href="#tab-bids" id="nav-bids" class="nav-item nav-link" data-toggle="tab">
+                      Verkaufshistorie
+                    </a>
                     <a href="#tab-history" id="nav-history" class="nav-item nav-link mr-2" data-toggle="tab">
-                      Verlauf
+                      Kaufhistorie
                     </a>
                     <a href="#tab-messages" id="nav-messages" class="nav-item nav-link d-none" data-toggle="tab">
                       Nachrichten
@@ -117,8 +117,7 @@
                   </nav><!-- ./nav-pills -->
 
                   <div class="btn-group w-100 px-3 pb-3">
-                    <button type="button" class="btn btn-sm btn-success font-weight-bol
-                    d rounded" data-toggle="modal" data-target="#createOfferModal">
+                    <button type="button" class="btn btn-sm btn-success font-weight-bold rounded" data-toggle="modal" data-target="#createOfferModal">
                       Angebot erstellen
                     </button>
                   </div>
@@ -127,7 +126,7 @@
                 <div class="body">
                   <div class="tab-content">
                     <div id="tab-offers" class="tab-pane fade show active" role="tabpanel">
-                      <div id="offerOutput" class="row">                        
+                      <div id="offerOutput" class="row">
                         <!--
                           Get content from js
                         -->
@@ -135,7 +134,7 @@
                     </div><!-- ./tab-offers -->
                     <div id="tab-bids" class="tab-pane fade" role="tabpanel">
                       <div class="table-responsive bg-light rounded p-0">
-                        <table class="table table-borderless nowrap">
+                        <table class="table table-borderless nowrap mb-0">
                           <thead>
                             <tr class="text-center">
                               <th>Status</th>
@@ -146,15 +145,14 @@
                               <th>Verkauft an</th>
                             </tr>
                           </thead>
-                          <tbody id="myOfferOutput">
-                            <!-- Get data with js -->
+                          <tbody id="sales">
                           </tbody>
                         </table>
                       </div><!-- ./table-responsive -->
                     </div><!-- ./tab-bids -->
                     <div id="tab-history" class="tab-pane fade" role="tabpanel">
                       <div class="table-responsive bg-light rounded p-0">
-                        <table class="table table-borderless nowrap">
+                        <table class="table table-borderless nowrap mb-0">
                           <thead>
                             <tr class="text-center">
                               <th>Status</th>
@@ -164,8 +162,7 @@
                               <th>Mein Gebot</th>
                             </tr>
                           </thead>
-                          <tbody id="bidOutput">
-                            <!-- Get data with js -->
+                          <tbody id="purchases">
                           </tbody>
                         </table>
                       </div><!-- ./table-responsive -->

@@ -93,16 +93,7 @@
           Offers
         -->
         <div class="container px-0">
-          <div id="offerOutput" class="row">
-            <!--
-              Get offers from system.js
-            -->
-            <?php
-              $itemSize = 3;
-              $auc = new Auction;
-              $auc->getOffers($itemSize);
-            ?>
-          </div><!-- ./row -->
+          <div id="offer-output" class="row"></div>
         </div><!-- ./container -->
       </div><!-- ./support -->
 
