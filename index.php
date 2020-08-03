@@ -121,6 +121,9 @@
     </script><!-- ./navbarJS -->
 
     <!-- This page script -->
+    <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-database.js"></script>
+    <script src="https://files.dulliag.de/web/js/cookie.js"></script>
     <script src="https://files.dulliag.de/web/js/auction.js"></script>
     <script type="text/javascript">
       const ls = localStorage;
