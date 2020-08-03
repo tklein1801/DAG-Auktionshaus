@@ -25,33 +25,6 @@ Das DAG-Auktionshaus befindet sich kurz vor der Veröffentlichung. Wir haben noc
 - [x] jQuery entfernen
   - Soweit es Bootstrap 4 zulässt
 
-### Rules
-
-**Firebase Database(Real-time)**
-
-```
-{
-  /* Visit https://firebase.google.com/docs/database/security to learn more about security rules. */
-  "rules": {
-    ".read": true,
-    ".write": true
-  }
-}
-```
-
-**Firebase Storage**
-
-```
-rules_version = '2';
-service firebase.storage {
-  match /b/{bucket}/o {
-    match /{allPaths=**} {
-      allow read, write: if true;
-    }
-  }
-}
-```
-
 ### Ressourcen
 
 - [Firebase](https://firebase.google.com)
