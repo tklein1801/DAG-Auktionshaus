@@ -464,11 +464,14 @@ class Auction {
             const userList = response.val();
             for (const key in userList) {
               if (
-                userList[key].username == username &&
+                (userList[key].username == username || userList[key].email == username) &&
                 userList[key].password == new Password(password).hash()
               ) {
                 success = true;
-                new Cookie().set("dag_auction", `{"username": "${username}", "userId": "${key}"}`);
+                new Cookie().set(
+                  "dag_auction",
+                  `{"username": "${userList[key].username}", "userId": "${key}"}`
+                );
               }
             }
             res(success);
