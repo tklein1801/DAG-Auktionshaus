@@ -203,6 +203,57 @@ class Auction {
                   steam64Id: owner.steamId,
                 },
               })
+              .then(() => {
+                const whurl = "WebhookURL";
+
+                const msg = {
+                  content: "<@&686304814958903327>",
+                  embeds: [
+                    {
+                      title: offerData.type == 1 ? "Sofortkauf" : "Auktion",
+                      color: 2664261,
+                      timestamp: new Date(),
+                      footer: {
+                        icon_url: "https://files.dulliag.de/web/images/logo.jpg",
+                        text: "by DAG-Auktionshaus",
+                      },
+                      thumbnail: {
+                        url: "https://files.dulliag.de/web/images/logo.jpg",
+                      },
+                      author: {
+                        name: offerData.owner.username,
+                        icon_url: "https://files.dulliag.de/web/images/logo.jpg",
+                      },
+                      fields: [
+                        {
+                          name: "Produkt",
+                          value: offerData.title,
+                          inline: true,
+                        },
+                        {
+                          name: "Startpreis",
+                          value: `${offerData.price.toLocaleString(undefined)} NHD`,
+                          inline: true,
+                        },
+                        {
+                          name: "Beschreibung",
+                          value: offerData.description,
+                        },
+                        {
+                          name: "Auktionshaus",
+                          value: `[Angebot anschauen](https://dulliag.de/Auktionen/offer.php?offer=${offerId})`,
+                        },
+                      ],
+                    },
+                  ],
+                };
+
+                fetch(whurl, {
+                  method: "POST",
+                  headers: { "content-type": "application/json" },
+                  body: JSON.stringify(msg),
+                });
+              })
               .catch((error) => {
                 rej(error);
               });
