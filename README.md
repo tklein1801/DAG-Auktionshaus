@@ -24,6 +24,7 @@ Das DAG-Auktionshaus befindet sich kurz vor der Veröffentlichung. Wir haben noc
 - [x] Dateiupload verbessern
 - [x] jQuery entfernen
   - Soweit es Bootstrap 4 zulässt
+- [ ] Dokumentation anfertigen
 
 ### Ressourcen
 
