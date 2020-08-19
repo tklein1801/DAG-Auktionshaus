@@ -494,6 +494,14 @@ class Auction {
     });
   }
 
+  /**
+   * @param {string} username
+   */
+  getAvatar(username) {
+    var avatarURL = `https://eu.ui-avatars.com/api/?name=${username}&size=256&background=fff&color=212529`;
+    return avatarURL;
+  }
+
   isLoggedIn() {
     const res = new Cookie().get("dag_auction");
     return res != null && res != "" ? true : false;
@@ -590,11 +598,15 @@ class Auction {
     $("#auctionBar #signInBtn").remove();
     $("#auctionBar .row").append(`<div class="dropdown ml-auto mr-4">
       <button class="btn border-0" data-toggle="dropdown">
-        <img class="rounded-circle" src="${data.avatar}" alt="Profilbild" style="width: 2.2rem; border: 2px solid #28A745;">
+        <img class="rounded-circle" src="${this.getAvatar(
+          username
+        )}" alt="Profilbild" style="width: 2.2rem; border: 2px solid #28A745;">
         </button>
       <div class="dropdown-menu dropdown-menu-right" style="z-index: 1200!important;">
         <a class="dropdown-item text-success text-center">${username}</a>
-        <a class="dropdown-item" href="${data.profile}"><i class="far fa-user-circle"></i> Mein Profil</a>
+        <a class="dropdown-item" href="${
+          data.profile
+        }"><i class="far fa-user-circle"></i> Mein Profil</a>
         <a class="dropdown-item d-none" href="${data.offers}">Meine Angebote</a>
         <a class="dropdown-item d-none" href="${data.messages}">Meine Nachrichten</a>
         <a class="dropdown-item" href="#" onclick="new Cookie().delete('dag_auction'); location.reload();"><i class="fas fa-sign-out-alt"></i> Abmelden</a>

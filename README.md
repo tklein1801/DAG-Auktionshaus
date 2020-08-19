@@ -30,3 +30,4 @@ Das DAG-Auktionshaus befindet sich kurz vor der Veröffentlichung. Wir haben noc
 
 - [Firebase](https://firebase.google.com)
 - [Bootstrap & dazugehörige Ressourcen](https://getbootstrap.com/)
+- [UI-Avatars](https://eu.ui-avatars.com/)
