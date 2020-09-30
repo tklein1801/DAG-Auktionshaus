@@ -4,6 +4,9 @@
 
 <h1 align="center"><strong>DAG-Auktionshaus</strong></h1>
 
+### :construction: Disclaimer
+**This project is closed** and will not receive any updates in the future. The **current version is [here](https://github.com/tklein1801/React-Auctions)** avaiable.
+
 ### About
 
 Das DAG-Auktionshaus ist ein online basiertes Auktionshaus für den Arma 3 RP Server [ReallifeRPG](https://realliferpg.de). Das ganze steht in keinen offiziellen Zusammenhang und gehört offiziell nicht zu [ReallifeRPG](https://realliferpg.de).
